@@ -45,3 +45,17 @@ WORKDIR /workspace
 # Copy Supervisor config
 #
 
+RUN apt update && \
+    apt install -y runc docker-ce-rootless-extras iptables uidmap && \
+    rm -rf /var/lib/apt/lists/
+
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN chmod +x /usr/local/bin/start-container
+COPY docker-up /usr/bin/docker-up
+COPY docker-proxy /usr/bin/docker-proxy
+COPY runc-facade /usr/bin/runc-facade
+
+EXPOSE 8000
+
+ENTRYPOINT ["start-container"]
