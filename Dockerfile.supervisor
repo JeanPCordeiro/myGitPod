@@ -31,8 +31,17 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
 RUN chown -R gitpod:gitpod /ide
 RUN chown -R gitpod:gitpod /workspace
 
+#
+# Install Supervisor
+#
+
 RUN apt update && \
     apt install -y supervisor && \
     rm -rf /var/lib/apt/lists/
 
 WORKDIR /workspace
+
+#
+# Copy Supervisor config
+#
+
