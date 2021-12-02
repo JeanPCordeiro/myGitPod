@@ -1,0 +1,38 @@
+FROM gitpod/workspace-mysql
+
+#
+# Install VSC Server
+#
+USER root
+
+WORKDIR /tmp
+
+ARG RELEASE_TAG="openvscode-server-v1.62.3"
+ARG RELEASE_ORG="gitpod-io"
+ARG OPENVSCODE_SERVER_ROOT="/ide"
+
+RUN if [ -z "${RELEASE_TAG}" ]; then \
+        echo "The RELEASE_TAG build arg must be set." >&2 && \
+        exit 1; \
+    fi && \
+    arch=$(uname -m) && \
+    if [ "${arch}" = "x86_64" ]; then \
+        arch="x64"; \
+    elif [ "${arch}" = "aarch64" ]; then \
+        arch="arm64"; \
+    elif [ "${arch}" = "armv7l" ]; then \
+        arch="armhf"; \
+    fi && \
+    wget https://github.com/${RELEASE_ORG}/openvscode-server/releases/download/${RELEASE_TAG}/${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    tar -xzf ${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    mv -f ${RELEASE_TAG}-linux-${arch} ${OPENVSCODE_SERVER_ROOT} && \
+    rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
+
+RUN chown -R gitpod:gitpod /ide
+RUN chown -R gitpod:gitpod /workspace
+
+RUN apt update && \
+    apt install -y supervisor && \
+    rm -rf /var/lib/apt/lists/
+
+WORKDIR /workspace
