@@ -1,3 +1,11 @@
 #!/usr/bin/env bash
 
+env
+mkdir -p /home/gitpod/.supervisord/
+
+cd /workspace
+git clone $VSC_GITURL
+mkdir -p $(basename "$VSC_GITURL" ".${url##*.}")/.vscode/
+cd $(basename "$VSC_GITURL" ".${url##*.}")
+
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
