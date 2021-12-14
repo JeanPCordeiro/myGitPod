@@ -1,0 +1,49 @@
+version: "3.8"
+
+networks:
+  traefik-public:
+    external: true
+
+services:
+
+  vscode:
+    image: jpcordeiro/mygitpod
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 10
+        window: 15s
+      labels:
+        - "traefik.enable=true"
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.${VSC_ID}-vsc-http.rule=Host(`${VSC_ID}.vsc.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${VSC_ID}-vsc-http.entrypoints=http
+        - traefik.http.routers.${VSC_ID}-vsc-http.service=${VSC_ID}-vsc
+        - traefik.http.routers.${VSC_ID}-vsc-http.middlewares=https-redirect
+        - traefik.http.routers.${VSC_ID}-vsc-https.rule=Host(`${VSC_ID}.vsc.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${VSC_ID}-vsc-https.entrypoints=https
+        - traefik.http.routers.${VSC_ID}-vsc-https.service=${VSC_ID}-vsc
+        - traefik.http.routers.${VSC_ID}-vsc-https.tls=true
+        - traefik.http.routers.${VSC_ID}-vsc-https.tls.certresolver=le
+        - traefik.http.services.${VSC_ID}-vsc.loadbalancer.server.port=3000
+
+        - traefik.http.routers.${VSC_ID}-php-http.rule=Host(`8000-${VSC_ID}.vsc.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${VSC_ID}-php-http.entrypoints=http
+        - traefik.http.routers.${VSC_ID}-php-http.service=${VSC_ID}-php
+        - traefik.http.routers.${VSC_ID}-php-http.middlewares=https-redirect
+        - traefik.http.routers.${VSC_ID}-php-https.rule=Host(`8000-${VSC_ID}.vsc.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${VSC_ID}-php-https.entrypoints=https
+        - traefik.http.routers.${VSC_ID}-php-https.service=${VSC_ID}-php
+        - traefik.http.routers.${VSC_ID}-php-https.tls=true
+        - traefik.http.routers.${VSC_ID}-php-https.tls.certresolver=le
+        - traefik.http.services.${VSC_ID}-php.loadbalancer.server.port=8000
+        
+    environment:
+        VSC_TOKEN: ${VSC_TOKEN}
+        VSC_GITURL: ${VSC_GITURL}
+        ENV_VSC_TOKEN: ${ENV_VSC_TOKEN}
+    networks:
+      - traefik-public 
